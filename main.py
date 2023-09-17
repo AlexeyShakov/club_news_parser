@@ -1,0 +1,33 @@
+import aiohttp
+import asyncio
+"""
+1. Функция, которая будет проходится по всем футбольным командам и запускать функацию для стягивания материала.
+2. Функция, которая стягивает html страницу определенной футбольной команды.
+3. Сущность для парсинга html страницы и вытягиванию только нужных данных
+    - т.к. есть три разных вида постов, то возможно придется для каждого поста сделать свой метод
+    - возможно это будет класс, т.к. мы будем парсить информацию об одном клубе и в конечном итоге
+        нам нужно хранить состояния - конечный итог обработки html. Конечный итог, это информация о всех статьях
+4. Сохранение статей в базу
+5. Посыл данных на другой микросервис
+"""
+
+FOOTBALL_CLUBS = {
+    "MU": "https://www.skysports.com/manchester-united",
+    "MC": "https://www.skysports.com/manchester-city"
+}
+
+async def get_club_info(url: str, club_name: str) -> None:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            print("Статус", response.status)
+            # print("Содержимое", await response.text())
+
+
+async def form_tasks() -> None:
+    tasks = [get_club_info(FOOTBALL_CLUBS[club_name], club_name) for club_name in FOOTBALL_CLUBS]
+    await asyncio.gather(*tasks)
+
+
+if __name__ == '__main__':
+    asyncio.run(form_tasks())
+
