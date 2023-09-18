@@ -15,18 +15,12 @@ from bs4 import BeautifulSoup
 7. Переодическая задача по удалению устаревших данных из базы.
 """
 
-# FOOTBALL_CLUBS = {
-#     "MU": "https://www.skysports.com/manchester-united",
-#     "MC": "https://www.skysports.com/manchester-city"
-# }
-
 FOOTBALL_CLUBS = {
-    # "MU": "https://www.skysports.com/manchester-united",
+    "MU": "https://www.skysports.com/manchester-united",
     "MC": "https://www.skysports.com/manchester-city"
 }
 
 async def get_club_info(url: str, club_name: str) -> None:
-    print("Я КЕК")
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
