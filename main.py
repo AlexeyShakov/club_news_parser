@@ -1,5 +1,7 @@
 import aiohttp
 import asyncio
+from html_hanlder import HtmlHandler
+from bs4 import BeautifulSoup
 """
 1. Функция, которая будет проходится по всем футбольным командам и запускать функцию для стягивания материала.
 2. Функция, которая стягивает html страницу определенной футбольной команды.
@@ -13,20 +15,31 @@ import asyncio
 7. Переодическая задача по удалению устаревших данных из базы.
 """
 
+# FOOTBALL_CLUBS = {
+#     "MU": "https://www.skysports.com/manchester-united",
+#     "MC": "https://www.skysports.com/manchester-city"
+# }
+
 FOOTBALL_CLUBS = {
-    "MU": "https://www.skysports.com/manchester-united",
+    # "MU": "https://www.skysports.com/manchester-united",
     "MC": "https://www.skysports.com/manchester-city"
 }
 
 async def get_club_info(url: str, club_name: str) -> None:
+    print("Я КЕК")
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            print("Статус", response.status)
-            # print("Содержимое", await response.text())
+            if response.status == 200:
+                soup = BeautifulSoup(await response.text(), "lxml")
+                await HtmlHandler(
+                    BeautifulSoup(await response.text(), "lxml")
+                ).process_html()
+            # Здесь нужно сделать лог TODO
 
 
 async def form_tasks() -> None:
-    tasks = [get_club_info(FOOTBALL_CLUBS[club_name], club_name) for club_name in FOOTBALL_CLUBS]
+    tasks = [asyncio.create_task(get_club_info(FOOTBALL_CLUBS[club_name], club_name)) for club_name in FOOTBALL_CLUBS]
+    print(tasks)
     await asyncio.gather(*tasks)
 
 
