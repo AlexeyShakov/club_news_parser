@@ -15,12 +15,6 @@ class Post:
     short_description: str
 
 
-class ClassTagInfo:
-    """
-    Класс описывает глобальный аттрибут class нужного элемента в теге.
-    """
-
-
 @dataclass
 class PostTagInfo:
     """
