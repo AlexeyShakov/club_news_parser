@@ -17,6 +17,7 @@ class HtmlHandler:
     def __init__(self, prepared_soup: BeautifulSoup):
         self.prepared_soup = prepared_soup
         self.prepared_data = []
+        self.lock = asyncio.Lock()
 
 
     async def process_html(self):
@@ -71,12 +72,17 @@ class HtmlHandler:
         for post in posts:
             link_and_title = post.find(*post_info.link_and_title_data)
             short_description = post.find(*post_info.short_description_data)
-            self.prepared_data.append(
+            await self.add_prepared_element(
                 Post(
                     link=link_and_title["href"],
                     title=link_and_title["title"].strip(),
                     short_description=short_description.text.strip()
                 )
+            )
+    async def add_prepared_element(self, new_element: Post) -> None:
+        async with self.lock:
+            self.prepared_data.append(
+                new_element
             )
 
     async def save_posts_into_db(self):
