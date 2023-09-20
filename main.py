@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 from html_hanlder import HtmlHandler
 from bs4 import BeautifulSoup
+from config import logger
 """
 + 1. Функция, которая будет проходится по всем футбольным командам и запускать функцию для стягивания материала.
 + 2. Функция, которая стягивает html страницу определенной футбольной команды.
@@ -27,7 +28,8 @@ async def get_club_info(url: str, club_name: str) -> None:
                 await HtmlHandler(
                     BeautifulSoup(await response.text(), "lxml")
                 ).process_html()
-            # Добавить лог TODO
+            else:
+                logger.exception(f"Неудачная попытка при получении новостей клуба {club_name}. Код ошибки: {response.status}")
 
 
 async def form_tasks() -> None:

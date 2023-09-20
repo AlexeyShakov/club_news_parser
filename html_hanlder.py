@@ -1,7 +1,7 @@
 import asyncio
 
 from bs4 import BeautifulSoup
-
+from config import logger
 from datastructures import Post, PostTagInfo
 
 
@@ -39,8 +39,8 @@ class HtmlHandler:
         latest_news_task = asyncio.create_task(self.process_other_posts(latest_news))
         await asyncio.gather(main_news_task, features_news_task, latest_news_task)
         if not self.prepared_data:
-            pass
-            # Добавить лог TODO
+            logger.exception("При обработке html-страниц получили 0 новостей")
+        logger.info("Новости успешно сгенерированы")
         # Отсюда мы должны сохранять объекты в базу TODO
         # Отсюда мы должны посылать данные на микросервис
 
