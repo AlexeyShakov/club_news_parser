@@ -3,6 +3,7 @@ import asyncio
 from bs4 import BeautifulSoup
 from config import logger
 from datastructures import Post, PostTagInfo
+import actions as act
 
 
 class HtmlHandler:
@@ -41,6 +42,7 @@ class HtmlHandler:
         if not self.prepared_data:
             logger.exception("При обработке html-страниц получили 0 новостей")
         logger.info("Новости успешно сгенерированы")
+        # make_actions() #Отсюда будем посылать запросы на микросервис, а также добавлять в базу
         # Отсюда мы должны сохранять объекты в базу TODO
         # Отсюда мы должны посылать данные на микросервис
 
@@ -78,3 +80,14 @@ class HtmlHandler:
             self.prepared_data.append(
                 new_element
             )
+
+
+
+class ActionHandler:
+    """
+    Класс производит последующие дейсвтия над данными после их обработки
+    """
+    actions = (act.save_news_into_db, act.send_to_translation_micro)
+    async def make_actions(self, news: list[Post]) -> None:
+        tasks = [asyncio.create_task(action(news)) for action in self.actions]
+        await asyncio.gather(*tasks)
