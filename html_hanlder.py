@@ -3,7 +3,7 @@ import asyncio
 from bs4 import BeautifulSoup
 from config import logger
 from datastructures import Post, PostTagInfo
-import actions as act
+from actions import save_news_list_into_db
 
 
 class HtmlHandler:
@@ -43,8 +43,7 @@ class HtmlHandler:
             logger.exception("При обработке html-страниц получили 0 новостей")
             return
         logger.info("Новости успешно сгенерированы")
-        action_handler = ActionHandler()
-        await action_handler(self.prepared_data)
+        await save_news_list_into_db(self.prepared_data)
 
     async def process_main_post(self) -> None:
         """
@@ -75,25 +74,9 @@ class HtmlHandler:
                     short_description=short_description.text.strip()
                 )
             )
+
     async def add_prepared_element(self, new_element: Post) -> None:
         async with self.lock:
             self.prepared_data.append(
                 new_element
             )
-
-
-class ActionHandler:
-    """
-    Класс производит последующие дейсвтия над данными после их обработки
-    """
-    actions = (act.save_news_list_into_db, act.send_to_translation_micro)
-
-    async def __call__(self, news: list[Post], *args, **kwargs):
-        print("Я в ActionHandler")
-        tasks = [asyncio.create_task(action(news)) for action in self.actions]
-        await asyncio.gather(*tasks)
-
-    async def make_actions(self, news: list[Post]) -> None:
-        print("Я в ActionHandler")
-        tasks = [asyncio.create_task(action(news)) for action in self.actions]
-        await asyncio.gather(*tasks)
