@@ -41,10 +41,10 @@ class HtmlHandler:
         await asyncio.gather(main_news_task, features_news_task, latest_news_task)
         if not self.prepared_data:
             logger.exception("При обработке html-страниц получили 0 новостей")
+            return
         logger.info("Новости успешно сгенерированы")
-        # make_actions() #Отсюда будем посылать запросы на микросервис, а также добавлять в базу
-        # Отсюда мы должны сохранять объекты в базу TODO
-        # Отсюда мы должны посылать данные на микросервис
+        action_handler = ActionHandler()
+        await action_handler(self.prepared_data)
 
     async def process_main_post(self) -> None:
         """
@@ -82,12 +82,18 @@ class HtmlHandler:
             )
 
 
-
 class ActionHandler:
     """
     Класс производит последующие дейсвтия над данными после их обработки
     """
-    actions = (act.save_news_into_db, act.send_to_translation_micro)
+    actions = (act.save_news_list_into_db, act.send_to_translation_micro)
+
+    async def __call__(self, news: list[Post], *args, **kwargs):
+        print("Я в ActionHandler")
+        tasks = [asyncio.create_task(action(news)) for action in self.actions]
+        await asyncio.gather(*tasks)
+
     async def make_actions(self, news: list[Post]) -> None:
+        print("Я в ActionHandler")
         tasks = [asyncio.create_task(action(news)) for action in self.actions]
         await asyncio.gather(*tasks)
