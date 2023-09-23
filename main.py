@@ -23,13 +23,18 @@ FOOTBALL_CLUBS = {
 
 async def get_club_info(url: str, club_name: str) -> None:
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status == 200:
-                await HtmlHandler(
-                    BeautifulSoup(await response.text(), "lxml")
-                ).process_html()
-            else:
-                logger.exception(f"Неудачная попытка при получении новостей клуба {club_name}. Код ошибки: {response.status}")
+        try:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    await HtmlHandler(
+                        BeautifulSoup(await response.text(), "lxml")
+                    ).process_html()
+                else:
+                    logger.exception(f"Неудачная попытка при получении новостей клуба {club_name}. Код ошибки: {response.status}")
+        except aiohttp.ClientConnectorError:
+            logger.exception(f"Неудалось получить информацию о клубе {club_name}")
+        except Exception:
+            logger.exception(f"Неизвестная ошибка при попытке получить информацию о клубе {club_name}")
 
 
 async def form_tasks() -> None:
