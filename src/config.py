@@ -15,7 +15,7 @@ DB_PORT = os.getenv("DB_PORT")
 logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler("logs/logs.log", encoding="utf-8")
+file_handler = logging.FileHandler(os.path.join(os.getcwd(), "logs/logs.log"), encoding="utf-8")
 file_handler.setLevel(logging.INFO)
 
 formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(message)s')
