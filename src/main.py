@@ -2,7 +2,8 @@ import aiohttp
 import asyncio
 from src.html_hanlder import HtmlHandler
 from bs4 import BeautifulSoup
-from src.config import logger
+from src.config import logger, console_logger
+
 """
 6. Переодическая задача для вызова функции по стягиванию информации
 7. Переодическая задача по удалению устаревших данных из базы.
@@ -13,20 +14,27 @@ FOOTBALL_CLUBS = {
     "MC": "https://www.skysports.com/manchester-city"
 }
 
+
 async def get_club_info(url: str, club_name: str) -> None:
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
                 if response.status == 200:
+                    console_logger.info(f"Новости для команды {club_name} успешно получены")
                     await HtmlHandler(
                         BeautifulSoup(await response.text(), "lxml")
                     ).process_html()
                 else:
-                    logger.exception(f"Неудачная попытка при получении новостей клуба {club_name}. Код ошибки: {response.status}")
+                    logger.exception(
+                        f"Неудачная попытка при получении новостей клуба {club_name}. Код ошибки: {response.status}")
+                    console_logger.exception(
+                        f"Неудачная попытка при получении новостей клуба {club_name}. Код ошибки: {response.status}")
         except aiohttp.ClientConnectorError:
             logger.exception(f"Неудалось получить информацию о клубе {club_name}")
+            console_logger.exception(f"Неудалось получить информацию о клубе {club_name}")
         except Exception:
             logger.exception(f"Неизвестная ошибка при попытке получить информацию о клубе {club_name}")
+            console_logger.exception(f"Неизвестная ошибка при попытке получить информацию о клубе {club_name}")
 
 
 async def form_tasks() -> None:
@@ -36,4 +44,3 @@ async def form_tasks() -> None:
 
 if __name__ == '__main__':
     asyncio.run(form_tasks())
-

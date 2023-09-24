@@ -1,7 +1,7 @@
 import asyncio
 
 from bs4 import BeautifulSoup
-from src.config import logger
+from src.config import logger, console_logger
 from src.datastructures import Post, PostTagInfo
 from src.actions import save_news_list_into_db
 
@@ -41,8 +41,10 @@ class HtmlHandler:
         await asyncio.gather(main_news_task, features_news_task, latest_news_task)
         if not self.prepared_data:
             logger.exception("При обработке html-страниц получили 0 новостей")
+            console_logger.exception("При обработке html-страниц получили 0 новостей")
             return
         logger.info("Новости успешно сгенерированы")
+        console_logger.exception("Новости успешно сгенерированы")
         await save_news_list_into_db(self.prepared_data)
 
     async def process_main_post(self) -> None:
