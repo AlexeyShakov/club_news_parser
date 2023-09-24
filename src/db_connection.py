@@ -9,7 +9,6 @@ metadata = MetaData()
 # Базовый класс для SQLAlchemy моделей(таблиц)
 Base = declarative_base()
 
-
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 DATABASE_URL_SYNC = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 

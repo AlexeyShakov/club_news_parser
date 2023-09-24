@@ -13,6 +13,7 @@ class HtmlHandler:
     * две менее главные новости - связаны с тегом, где "class"="grid news-list-featured block"
     * другие новости(5 шт) - связаны с тегом, где "class"="news-list block"
     """
+
     def __init__(self, prepared_soup: BeautifulSoup):
         self.prepared_soup = prepared_soup
         self.prepared_data = []
@@ -57,10 +58,10 @@ class HtmlHandler:
 
         await self.add_prepared_element(
             Post(
-            link=link_and_title["href"],
-            title=link_and_title.text.strip(),
-            short_description=short_description.text.strip()
-        )
+                link=link_and_title["href"],
+                title=link_and_title.text.strip(),
+                short_description=short_description.text.strip()
+            )
         )
 
     async def process_other_posts(self, post_info: PostTagInfo) -> None:

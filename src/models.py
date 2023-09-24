@@ -5,6 +5,7 @@ from sqlalchemy import Integer, Column, Text, Enum, ForeignKey
 
 from src.enums import StepNameChoice
 
+
 class Error(Base):
     """
     Описывает, на каком этапе произошла ошибка при обработке новости
@@ -15,6 +16,7 @@ class Error(Base):
     step = Column(Enum(StepNameChoice), nullable=False, unique=True)
 
     posts = relationship("Post", back_populates="error")
+
 
 class Post(Base):
     """

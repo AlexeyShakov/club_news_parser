@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import TypeAlias
 
-
 HTML_ENTITY: TypeAlias = tuple[str, dict[str, str]]
 
 
@@ -26,5 +25,3 @@ class PostTagInfo:
     post_data: HTML_ENTITY
     link_and_title_data: HTML_ENTITY
     short_description_data: HTML_ENTITY
-
-
