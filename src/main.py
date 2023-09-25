@@ -16,7 +16,7 @@ FOOTBALL_CLUBS = {
 
 
 async def get_club_info(url: str, club_name: str) -> None:
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=5) as session:
         try:
             async with session.get(url) as response:
                 if response.status == 200:
