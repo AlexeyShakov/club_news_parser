@@ -27,3 +27,6 @@ if not console_logger.handlers:
     formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(message)s')
     console_handler.setFormatter(formatter)
     console_logger.addHandler(console_handler)
+
+# в секундах
+GETTING_NEWS_INTERVAL = 60

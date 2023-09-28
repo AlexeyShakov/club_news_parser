@@ -56,7 +56,7 @@ async def exclude_existing_news(news: list[Post], session: AsyncSession) -> list
 
 
 async def send_to_translation_micro(news: list[Post]):
-    async with aiohttp.ClientSession(timeout=5) as session:
+    async with aiohttp.ClientSession() as session:
         try:
             # Написать нормальный URL сервиса переводов и преобразовать news в list of dicts TODO
             async with session.post('http://something_228.com', json=asdict(news[0])) as resp:

@@ -2,7 +2,7 @@ import aiohttp
 import asyncio
 from src.html_hanlder import HtmlHandler
 from bs4 import BeautifulSoup
-from src.config import logger, console_logger
+from src.config import logger, console_logger, GETTING_NEWS_INTERVAL
 
 """
 6. Переодическая задача для вызова функции по стягиванию информации
@@ -16,7 +16,7 @@ FOOTBALL_CLUBS = {
 
 
 async def get_club_info(url: str, club_name: str) -> None:
-    async with aiohttp.ClientSession(timeout=5) as session:
+    async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
                 if response.status == 200:
@@ -38,9 +38,17 @@ async def get_club_info(url: str, club_name: str) -> None:
 
 
 async def form_tasks() -> None:
+    print("Я в form_tasks")
     tasks = [asyncio.create_task(get_club_info(FOOTBALL_CLUBS[club_name], club_name)) for club_name in FOOTBALL_CLUBS]
     await asyncio.gather(*tasks)
 
 
+async def start_app():
+    while True:
+        print("Перед запуском команды")
+        await form_tasks()
+        print("Запустил таски щас буду спать")
+        await asyncio.sleep(GETTING_NEWS_INTERVAL)
+
 if __name__ == '__main__':
-    asyncio.run(form_tasks())
+    asyncio.run(start_app())
