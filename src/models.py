@@ -34,3 +34,6 @@ class Post(Base):
 
     error_id = Column(Integer, ForeignKey('errors.id'), nullable=True, default=None)
     error = relationship("Error", back_populates="posts", lazy="joined")
+
+    def to_translation_service(self):
+        return {"id": self.id, "link": self.link, "title": self.title, "short_description": self.short_description}

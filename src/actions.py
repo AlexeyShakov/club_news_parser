@@ -9,7 +9,7 @@ from enums import StepNameChoice
 from models import Post as PostDB
 from models import Error
 import aiohttp
-from config import logger, console_logger
+from config import logger, console_logger, TRANSLATION_URL
 
 
 async def save_news_list_into_db(news: list[Post]) -> None:
@@ -22,7 +22,7 @@ async def save_news_list_into_db(news: list[Post]) -> None:
         session.add_all(db_elements)
         await session.commit()
     if news:
-        await send_to_translation_micro(news)
+        await send_to_translation_micro(db_elements)
 
 
 async def update_db_elements_with_error(news: list[Post]) -> None:
@@ -55,12 +55,15 @@ async def exclude_existing_news(news: list[Post], session: AsyncSession) -> list
     return [element for element in news if element.title not in plain_result]
 
 
-async def send_to_translation_micro(news: list[Post]):
+async def send_to_translation_micro(news: list[PostDB]):
     async with aiohttp.ClientSession() as session:
         try:
             # Написать нормальный URL сервиса переводов и преобразовать news в list of dicts TODO
-            async with session.post('http://something_228.com', json=asdict(news[0])) as resp:
-                pass
+            posts_for_translation = [post.to_translation_service() for post in news]
+            async with session.post(TRANSLATION_URL, json=posts_for_translation) as resp:
+                if resp != 204:
+                    pass
+                console_logger.exception("Новости успешно отправлены для перевода")
         except aiohttp.ClientConnectorError:
             logger.exception("Микросервис переводов недоступен")
             console_logger.exception("Микросервис переводов недоступен")

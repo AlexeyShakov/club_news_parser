@@ -10,6 +10,10 @@ DB_HOST = os.getenv("DB_HOST")
 DB_NAME = os.getenv("POSTGRES_DB")
 DB_PORT = os.getenv("DB_PORT")
 
+TRANSLATION_URL = os.getenv("TRANSLATION_URL")
+TELEGRAM_URL = os.getenv("TELEGRAM_URL")
+
+
 logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
 if not logger.handlers:
