@@ -25,22 +25,18 @@ async def save_news_list_into_db(news: list[Post]) -> None:
         await send_to_translation_micro(db_elements)
 
 
-async def update_db_elements_with_error(news: list[Post]) -> None:
+async def update_db_elements_with_error(news: list[PostDB]) -> None:
     async with async_session_maker() as session:
         query = select(Error).where(Error.step == StepNameChoice.SENDING_TO_TRANSLATION.name)
         result = await session.execute(query)
         error = result.scalars().first()
 
-        news_titles = [element.title for element in news]
-        post_query = select(PostDB).where(PostDB.title.in_(news_titles))
-        result = await session.execute(post_query)
         modified_posts = []
-        for el in result.scalars().all():
-            el.error_id = error.id
-            modified_posts.append(el)
+        for post in news:
+            post.error_id = error.id
+            modified_posts.append(post)
         session.add_all(modified_posts)
         await session.commit()
-
 
 async def exclude_existing_news(news: list[Post], session: AsyncSession) -> list[Post]:
     news_titles = [element.title for element in news]
@@ -62,7 +58,8 @@ async def send_to_translation_micro(news: list[PostDB]):
             posts_for_translation = [post.to_translation_service() for post in news]
             async with session.post(TRANSLATION_URL, json=posts_for_translation) as resp:
                 if resp != 204:
-                    pass
+                    await update_db_elements_with_error(news)
+                    return
                 console_logger.exception("Новости успешно отправлены для перевода")
         except aiohttp.ClientConnectorError:
             logger.exception("Микросервис переводов недоступен")
