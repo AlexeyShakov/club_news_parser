@@ -18,6 +18,8 @@ DB_PORT = os.getenv("DB_PORT")
 TRANSLATION_URL = os.getenv("TRANSLATION_URL")
 TELEGRAM_URL = os.getenv("TELEGRAM_URL")
 
+OUTDATING_INTERVAL = 3
+
 
 logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)

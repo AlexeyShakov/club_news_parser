@@ -1,15 +1,14 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils.datastructures import Post
+from src.utils.datastructures import Post
 from dataclasses import asdict
 
-from db.db_connection import async_session_maker
-from utils.enums import StepNameChoice
-from db.models import Post as PostDB
-from db.models import Error
+from src.db.db_connection import async_session_maker
+from src.utils.enums import StepNameChoice
+from src.db.models import Post as PostDB, Error
 import aiohttp
-from config import logger, console_logger, TRANSLATION_URL
+from src.config import logger, console_logger, TRANSLATION_URL
 
 
 async def save_news_list_into_db(news: list[Post]) -> None:

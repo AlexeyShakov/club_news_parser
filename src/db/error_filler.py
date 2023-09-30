@@ -1,8 +1,8 @@
 import asyncio
 
-from db.db_connection import async_session_maker
-from db.models import Error
-from utils.enums import StepNameChoice
+from src.db.db_connection import async_session_maker
+from src.db.models import Error
+from src.utils.enums import StepNameChoice
 from src.config import console_logger
 
 

@@ -2,8 +2,8 @@ import asyncio
 
 from bs4 import BeautifulSoup
 from src.config import logger, console_logger
-from utils.datastructures import Post, PostTagInfo
-from utils.actions import save_news_list_into_db
+from src.utils.datastructures import Post, PostTagInfo
+from src.utils.actions import save_news_list_into_db
 
 
 class HtmlHandler:

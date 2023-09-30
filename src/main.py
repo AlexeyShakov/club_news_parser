@@ -44,9 +44,7 @@ async def form_tasks() -> None:
 
 async def start_app():
     while True:
-        print("Перед запуском команды")
         await form_tasks()
-        print("Запустил таски щас буду спать")
         await asyncio.sleep(GETTING_NEWS_INTERVAL)
 
 if __name__ == '__main__':
