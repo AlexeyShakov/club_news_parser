@@ -1,8 +1,13 @@
+from pathlib import Path
+
 from dotenv import load_dotenv
 import os
 import logging
 
+
 load_dotenv()
+
+BASE_DIR = Path(os.path.abspath(__file__)).parent.parent
 
 DB_USER = os.getenv("POSTGRES_USER")
 DB_PASS = os.getenv("POSTGRES_PASSWORD")
@@ -17,7 +22,8 @@ TELEGRAM_URL = os.getenv("TELEGRAM_URL")
 logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
 if not logger.handlers:
-    file_handler = logging.FileHandler(os.path.join(os.getcwd(), "logs/logs.log"), encoding="utf-8")
+    file_handler = logging.FileHandler(os.path.join(BASE_DIR, "logs/logs.log"),
+                                       encoding="utf-8")
     file_handler.setLevel(logging.INFO)
     formatter = logging.Formatter('%(levelname)s - %(asctime)s - %(message)s')
     file_handler.setFormatter(formatter)

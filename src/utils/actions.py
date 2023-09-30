@@ -1,13 +1,13 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from datastructures import Post
+from utils.datastructures import Post
 from dataclasses import asdict
 
-from db_connection import async_session_maker
-from enums import StepNameChoice
-from models import Post as PostDB
-from models import Error
+from db.db_connection import async_session_maker
+from utils.enums import StepNameChoice
+from db.models import Post as PostDB
+from db.models import Error
 import aiohttp
 from config import logger, console_logger, TRANSLATION_URL
 
