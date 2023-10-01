@@ -55,7 +55,7 @@ async def send_to_translation_micro(news: list[PostDB]):
         try:
             posts_for_translation = [post.to_translation_service() for post in news]
             async with session.post(TRANSLATION_URL, json=posts_for_translation) as resp:
-                if resp != 204:
+                if resp.status != 204:
                     await update_db_elements_with_error(news)
                     return
                 console_logger.exception("Новости успешно отправлены для перевода")

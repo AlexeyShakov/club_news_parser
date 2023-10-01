@@ -41,4 +41,6 @@ if not console_logger.handlers:
     console_logger.addHandler(console_handler)
 
 # в секундах
-GETTING_NEWS_INTERVAL = 60
+GETTING_NEWS_INTERVAL = 40 * 60
+RESENDING_INTERVAL = GETTING_NEWS_INTERVAL - (5 * 60)
+DELETING_OUTDATED_NEWS_INTERVAL = 24 * 60 * 60

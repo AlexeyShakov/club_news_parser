@@ -3,11 +3,10 @@ import asyncio
 from src.html_hanlder import HtmlHandler
 from bs4 import BeautifulSoup
 from src.config import logger, console_logger, GETTING_NEWS_INTERVAL
+from threading import Thread
+from src.utils.delete_old_news import delete_outdated_news
+from src.utils.resend_error_news import handle_resending
 
-"""
-6. Переодическая задача для вызова функции по стягиванию информации
-7. Переодическая задача по удалению устаревших данных из базы.
-"""
 
 FOOTBALL_CLUBS = {
     "MU": "https://www.skysports.com/manchester-united",
@@ -43,10 +42,19 @@ async def form_tasks() -> None:
 
 
 async def start_app():
+    console_logger.info("Приложение запустилось")
     while True:
         await form_tasks()
         await asyncio.sleep(GETTING_NEWS_INTERVAL)
 
+
+def start_background_tasks():
+    thread_1 = Thread(target=delete_outdated_news)
+    thread_2 = Thread(target=handle_resending)
+    thread_1.start()
+    thread_2.start()
+
+
 if __name__ == '__main__':
-    # asyncio.run(start_app())
-    asyncio.run(form_tasks())
+    start_background_tasks()
+    asyncio.run(start_app())
