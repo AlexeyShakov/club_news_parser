@@ -10,7 +10,10 @@ from src.utils.resend_error_news import handle_resending
 
 FOOTBALL_CLUBS = {
     "MU": "https://www.skysports.com/manchester-united",
-    "MC": "https://www.skysports.com/manchester-city"
+    "MC": "https://www.skysports.com/manchester-city",
+    "Chelsea": "https://www.skysports.com/chelsea",
+    "Arsenal": "https://www.skysports.com/arsenal",
+    "Liverpool": "https://www.skysports.com/liverpool"
 }
 
 
