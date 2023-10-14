@@ -66,7 +66,11 @@ class NewsResender:
         raise SenderNotFound()
 
     def send_over_grpc(self, news: list[dict]) -> None:
-        data_to_send = [translation_pb2.OneNews(one_news=post) for post in news]
+        data_to_send = [
+            translation_pb2.OneNews(id={"id": str(post["id"])}, link={"link": post["link"]},
+                                    title={"title": post["title"]},
+                                    short_description={"short_description": post["short_description"]}) for post in
+            news]
         channel = grpc.insecure_channel(f"localhost:{GRPC_TRANSLATION_PORT}")
         stub = translation_pb2_grpc.NewsTranslatorStub(channel)
         try:
