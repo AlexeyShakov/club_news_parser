@@ -7,8 +7,7 @@ from dataclasses import asdict
 from src.db.db_connection import async_session_maker
 from src.utils.enums import StepNameChoice
 from src.db.models import Post as PostDB, Error
-import aiohttp
-from src.config import logger, console_logger, TRANSLATION_URL
+from src.config import console_logger
 
 
 async def save_news_list_into_db(news: list[Post]) -> None:
@@ -21,6 +20,7 @@ async def save_news_list_into_db(news: list[Post]) -> None:
         session.add_all(db_elements)
         await session.commit()
     if news:
+        from src.utils.send_to_translations_utils.senders import send_to_translation_micro
         await send_to_translation_micro(db_elements)
 
 
@@ -37,6 +37,7 @@ async def update_db_elements_with_error(news: list[PostDB]) -> None:
         session.add_all(modified_posts)
         await session.commit()
 
+
 async def exclude_existing_news(news: list[Post], session: AsyncSession) -> list[Post]:
     news_titles = [element.title for element in news]
     # Находим те статьи, что уже есть в базе
@@ -50,21 +51,4 @@ async def exclude_existing_news(news: list[Post], session: AsyncSession) -> list
     return [element for element in news if element.title not in plain_result]
 
 
-async def send_to_translation_micro(news: list[PostDB]):
-    async with aiohttp.ClientSession() as session:
-        try:
-            posts_for_translation = [post.to_translation_service() for post in news]
-            async with session.post(TRANSLATION_URL, json=posts_for_translation) as resp:
-                if resp.status != 204:
-                    await update_db_elements_with_error(news)
-                    return
-                console_logger.exception("Новости успешно отправлены для перевода")
-        except aiohttp.ClientConnectorError:
-            logger.exception("Микросервис переводов недоступен")
-            console_logger.exception("Микросервис переводов недоступен")
-            # Соединяем ошибку со всеми новостями
-            await update_db_elements_with_error(news)
-        except Exception:
-            logger.exception("Неизвестная ошибка при попытки отправить данные на сервис переводов")
-            console_logger.exception("Неизвестная ошибка при попытки отправить данные на сервис переводов")
-            await update_db_elements_with_error(news)
+

@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import os
 import logging
 
-
 load_dotenv()
 
 BASE_DIR = Path(os.path.abspath(__file__)).parent.parent
@@ -19,7 +18,6 @@ TRANSLATION_URL = os.getenv("TRANSLATION_URL")
 TELEGRAM_URL = os.getenv("TELEGRAM_URL")
 
 OUTDATING_INTERVAL = 3
-
 
 logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
@@ -44,3 +42,9 @@ if not console_logger.handlers:
 GETTING_NEWS_INTERVAL = 40 * 60
 RESENDING_INTERVAL = GETTING_NEWS_INTERVAL - (5 * 60)
 DELETING_OUTDATED_NEWS_INTERVAL = 24 * 60 * 60
+
+OVER_HTTP = int(os.getenv("OVER_HTTP"))
+OVER_GRPC = int(os.getenv("OVER_GRPC"))
+OVER_QUEUE = int(os.getenv("OVER_QUEUE"))
+
+GRPC_TRANSLATION_PORT = os.getenv("GRPC_TRANSLATION_PORT")

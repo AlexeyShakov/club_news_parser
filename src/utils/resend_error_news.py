@@ -1,13 +1,17 @@
 import time
 from typing import Sequence
 
+import grpc
 from sqlalchemy import select, or_
 
-from src.config import TELEGRAM_URL, console_logger, logger, TRANSLATION_URL, RESENDING_INTERVAL
+from grpc_translations import translation_pb2, translation_pb2_grpc
+from src.config import TELEGRAM_URL, console_logger, logger, TRANSLATION_URL, RESENDING_INTERVAL, OVER_GRPC, OVER_HTTP, \
+    OVER_QUEUE, GRPC_TRANSLATION_PORT
 from src.db.db_connection import sync_session_maker
 from src.db.models import Post, Error
 from src.utils.enums import StepNameChoice
 import requests
+from src.custom_exceptions import SenderNotFound
 
 
 def handle_resending():
@@ -27,8 +31,7 @@ class NewsResender:
         if not posts:
             return
         self._filter_news(posts)
-        self._send_news(TRANSLATION_URL, self.TRANSLATION_NEWS)
-        self._send_news(TELEGRAM_URL, self.TELEGRAM_NEWS)
+        self._send_news()
 
     def _get_posts(self) -> Sequence[Post]:
         with sync_session_maker() as session:
@@ -45,7 +48,39 @@ class NewsResender:
             else:
                 self.TELEGRAM_NEWS.append(post.to_telegram_service())
 
-    def _send_news(self, url: str, news: list[dict]) -> None:
+    def _send_news(self) -> None:
+        if OVER_HTTP:
+            if self.TRANSLATION_NEWS:
+                self._send_news_by_http(TRANSLATION_URL, self.TRANSLATION_NEWS)
+            if self.TELEGRAM_NEWS:
+                self._send_news_by_http(TELEGRAM_URL, self.TELEGRAM_NEWS)
+            return
+        if OVER_GRPC:
+            if self.TRANSLATION_NEWS:
+                self.send_over_grpc(self.TRANSLATION_NEWS)
+            if self.TELEGRAM_NEWS:
+                pass
+            return
+        if OVER_QUEUE:
+            return
+        raise SenderNotFound()
+
+    def send_over_grpc(self, news: list[dict]) -> None:
+        data_to_send = [translation_pb2.OneNews(one_news=post) for post in news]
+        channel = grpc.insecure_channel(f"localhost:{GRPC_TRANSLATION_PORT}")
+        stub = translation_pb2_grpc.NewsTranslatorStub(channel)
+        try:
+            stub.GetNews(translation_pb2.News(
+                news=data_to_send))
+        except grpc.RpcError as rpc_error:
+            if rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
+                logger.exception("Сервис переводов недоступен")
+                console_logger.exception("Сервис переводов недоступен")
+            else:
+                logger.exception(f"Неизвестная ошибка на сервисе переводов: {rpc_error}")
+                console_logger.exception("Неизвестная ошибка на сервисе переводов")
+
+    def _send_news_by_http(self, url: str, news: list[dict]) -> None:
         try:
             response = requests.post(url=url, json=news)
             if response.status_code != 204:

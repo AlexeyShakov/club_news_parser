@@ -6,3 +6,5 @@ __pycache__
 useful.txt
 services
 .env
+grpc_main.py
+grpc_client.py
