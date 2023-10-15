@@ -41,7 +41,7 @@ async def send_by_http(news: list[Post]) -> None:
 
 async def send_over_grpc(news: list[Post]) -> None:
     data_to_send = [
-        translation_pb2.OneNews(id={"id": str(post.id)}, link={"link": post.link}, title={"title": post.title},
+        translation_pb2.OneNews(id={"id": post.id}, link={"link": post.link}, title={"title": post.title},
                                 short_description={"short_description": post.short_description}) for post in news]
     channel = grpc.aio.insecure_channel(f"localhost:{GRPC_TRANSLATION_PORT}")
     stub = translation_pb2_grpc.NewsTranslatorStub(channel)

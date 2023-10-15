@@ -2,11 +2,11 @@ import time
 from typing import Sequence
 
 import grpc
+from grpc_service import telegram_pb2_grpc, telegram_pb2, translation_pb2, translation_pb2_grpc
 from sqlalchemy import select, or_
 
-from grpc_translations import translation_pb2, translation_pb2_grpc
 from src.config import TELEGRAM_URL, console_logger, logger, TRANSLATION_URL, RESENDING_INTERVAL, OVER_GRPC, OVER_HTTP, \
-    OVER_QUEUE, GRPC_TRANSLATION_PORT
+    OVER_QUEUE, GRPC_TRANSLATION_PORT, GRPC_TELEGRAM_PORT
 from src.db.db_connection import sync_session_maker
 from src.db.models import Post, Error
 from src.utils.enums import StepNameChoice
@@ -57,7 +57,7 @@ class NewsResender:
             return
         if OVER_GRPC:
             if self.TRANSLATION_NEWS:
-                self.send_over_grpc(self.TRANSLATION_NEWS)
+                self.send_over_grpc_to_translation(self.TRANSLATION_NEWS)
             if self.TELEGRAM_NEWS:
                 pass
             return
@@ -65,9 +65,34 @@ class NewsResender:
             return
         raise SenderNotFound()
 
-    def send_over_grpc(self, news: list[dict]) -> None:
+    def send_over_grpc_to_telegram(self, news: list[dict]) -> None:
+        channel = grpc.aio.insecure_channel(f"localhost:{GRPC_TELEGRAM_PORT}")
+        stub = telegram_pb2_grpc.NewsTelegramStub(channel)
         data_to_send = [
-            translation_pb2.OneNews(id={"id": str(post["id"])}, link={"link": post["link"]},
+            telegram_pb2.OneTranslatedNews(id={"id": post["id"]}, link={"link": post["link"]},
+                                           translated_title={"translated_title": post["translated_title"]},
+                                           translated_short_description={
+                                               "translated_short_description": post["translated_short_description"]})
+            for post in news]
+        try:
+            await stub.GetNews(telegram_pb2.TranslatedNews(
+                news=data_to_send
+            ))
+            console_logger.info("Данные успешно переданы на микросервис управлением телеграмма")
+        except grpc.aio.AioRpcError as rpc_error:
+            if rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
+                logger.exception("Сервис телеграма недоступен при повторной отправки новостей")
+                console_logger.exception("Сервис телеграма недоступен повторной отправки новостей")
+            else:
+                logger.exception("Неизвестная ошибка на сервисе телеграмма  при повторной отправки новостей")
+                console_logger.exception("Неизвестная ошибка на сервисе телеграмма при повторной отправки новостей")
+        finally:
+            await channel.close()
+
+
+    def send_over_grpc_to_translation(self, news: list[dict]) -> None:
+        data_to_send = [
+            translation_pb2.OneNews(id={"id": post["id"]}, link={"link": post["link"]},
                                     title={"title": post["title"]},
                                     short_description={"short_description": post["short_description"]}) for post in
             news]
@@ -78,8 +103,8 @@ class NewsResender:
                 news=data_to_send))
         except grpc.RpcError as rpc_error:
             if rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
-                logger.exception("Сервис переводов недоступен")
-                console_logger.exception("Сервис переводов недоступен")
+                logger.exception("Сервис переводов недоступен при повторной отправке новостей")
+                console_logger.exception("Сервис переводов недоступен повторной отправке новостей")
             else:
                 logger.exception(f"Неизвестная ошибка на сервисе переводов: {rpc_error}")
                 console_logger.exception("Неизвестная ошибка на сервисе переводов")

@@ -37,8 +37,8 @@ class Post(Base):
     error = relationship("Error", back_populates="posts", lazy="joined")
 
     def to_translation_service(self) -> dict:
-        return {"id": str(self.id), "link": self.link, "title": self.title, "short_description": self.short_description}
+        return {"id": self.id, "link": self.link, "title": self.title, "short_description": self.short_description}
 
     def to_telegram_service(self) -> dict:
-        return {"id": str(self.id), "link": self.link, "translated_title": self.translated_title,
+        return {"id": self.id, "link": self.link, "translated_title": self.translated_title,
                 "translated_short_description": self.translated_short_description}
