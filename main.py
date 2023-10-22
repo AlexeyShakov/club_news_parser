@@ -2,18 +2,19 @@ import aiohttp
 import asyncio
 from src.html_hanlder import HtmlHandler
 from bs4 import BeautifulSoup
-from src.config import logger, console_logger, GETTING_NEWS_INTERVAL
+from src.config import logger, console_logger, GETTING_NEWS_INTERVAL, OVER_QUEUE, OVER_GRPC, OVER_HTTP
 from threading import Thread
 from src.utils.delete_old_news import delete_outdated_news
-from src.utils.resend_error_news import handle_resending
+
+# from src.utils.resend_error_news import handle_resending
 
 
 FOOTBALL_CLUBS = {
     "MU": "https://www.skysports.com/manchester-united",
-    "MC": "https://www.skysports.com/manchester-city",
-    "Chelsea": "https://www.skysports.com/chelsea",
-    "Arsenal": "https://www.skysports.com/arsenal",
-    "Liverpool": "https://www.skysports.com/liverpool"
+    # "MC": "https://www.skysports.com/manchester-city",
+    # "Chelsea": "https://www.skysports.com/chelsea",
+    # "Arsenal": "https://www.skysports.com/arsenal",
+    # "Liverpool": "https://www.skysports.com/liverpool"
 }
 
 
@@ -52,10 +53,13 @@ async def start_app():
 
 
 def start_background_tasks():
+    # Если микросервисы общаются через RabbitMQ, то нам не нужно самим отправлять неотправленные новости,
+    # т.к. RabbitMQ сделаем это за нас
+    if OVER_HTTP or OVER_GRPC:
+        thread_2 = Thread(target=handle_resending)
+        thread_2.start()
     thread_1 = Thread(target=delete_outdated_news)
-    thread_2 = Thread(target=handle_resending)
     thread_1.start()
-    thread_2.start()
 
 
 if __name__ == '__main__':

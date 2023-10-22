@@ -1,9 +1,12 @@
+import base64
+import json
+from aio_pika import DeliveryMode, Message, connect
 import aiohttp
 
-from src.config import OVER_HTTP, OVER_QUEUE, OVER_GRPC, TRANSLATION_URL, console_logger, GRPC_TRANSLATION_PORT
+from src.config import OVER_HTTP, OVER_QUEUE, OVER_GRPC, TRANSLATION_URL, console_logger, GRPC_TRANSLATION_PORT, logger, \
+    TRANSLATION_QUEUE, RABBITMQ_USER, RABBITMQ_PASS
 from src.custom_exceptions import SenderNotFound
 from src.db.models import Post
-from src.config import logger
 from src.utils.actions import update_db_elements_with_error
 import grpc
 from grpc_translations import translation_pb2, translation_pb2_grpc
@@ -13,7 +16,7 @@ async def send_to_translation_micro(news: list[Post]) -> None:
     if OVER_HTTP:
         return await send_by_http(news)
     if OVER_QUEUE:
-        return
+        return await send_over_rabbit(news)
     if OVER_GRPC:
         return await send_over_grpc(news)
     raise SenderNotFound()
@@ -68,3 +71,25 @@ async def send_over_grpc(news: list[Post]) -> None:
         await update_db_elements_with_error(news)
     finally:
         await channel.close()
+
+
+async def send_over_rabbit(news: list[Post]) -> None:
+    posts_for_translation = [post.to_translation_service() for post in news]
+    connection = await connect(f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@localhost/")
+    async with connection:
+        channel = await connection.channel()
+
+        # Объявление очереди
+        await channel.declare_queue(
+            TRANSLATION_QUEUE,
+            durable=True,
+        )
+        news_as_bytes = base64.b64encode(str.encode(json.dumps(posts_for_translation), 'utf-8'))
+        await channel.default_exchange.publish(
+            Message(
+                news_as_bytes,
+                delivery_mode=DeliveryMode.PERSISTENT
+            ),
+            routing_key=TRANSLATION_QUEUE,
+        )
+        console_logger.info("Новость отправлена")
