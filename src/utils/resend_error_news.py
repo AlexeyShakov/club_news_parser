@@ -23,8 +23,9 @@ def handle_resending():
 
 
 class NewsResender:
-    TRANSLATION_NEWS = []
-    TELEGRAM_NEWS = []
+    def __init__(self):
+        self.TRANSLATION_NEWS = []
+        self.TELEGRAM_NEWS = []
 
     def resend_news(self) -> None:
         posts = self._get_posts()
@@ -59,7 +60,7 @@ class NewsResender:
             if self.TRANSLATION_NEWS:
                 self.send_over_grpc_to_translation(self.TRANSLATION_NEWS)
             if self.TELEGRAM_NEWS:
-                pass
+                self.send_over_grpc_to_telegram(self.TELEGRAM_NEWS)
             return
         if OVER_QUEUE:
             return
@@ -75,11 +76,11 @@ class NewsResender:
                                                "translated_short_description": post["translated_short_description"]})
             for post in news]
         try:
-            await stub.GetNews(telegram_pb2.TranslatedNews(
+            stub.GetNews(telegram_pb2.TranslatedNews(
                 news=data_to_send
             ))
             console_logger.info("Данные успешно переданы на микросервис управлением телеграмма")
-        except grpc.aio.AioRpcError as rpc_error:
+        except grpc.RpcError as rpc_error:
             if rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
                 logger.exception("Сервис телеграма недоступен при повторной отправки новостей")
                 console_logger.exception("Сервис телеграма недоступен повторной отправки новостей")
@@ -87,8 +88,7 @@ class NewsResender:
                 logger.exception("Неизвестная ошибка на сервисе телеграмма  при повторной отправки новостей")
                 console_logger.exception("Неизвестная ошибка на сервисе телеграмма при повторной отправки новостей")
         finally:
-            await channel.close()
-
+            channel.close()
 
     def send_over_grpc_to_translation(self, news: list[dict]) -> None:
         data_to_send = [
@@ -108,6 +108,8 @@ class NewsResender:
             else:
                 logger.exception(f"Неизвестная ошибка на сервисе переводов: {rpc_error}")
                 console_logger.exception("Неизвестная ошибка на сервисе переводов")
+        finally:
+            channel.close()
 
     def _send_news_by_http(self, url: str, news: list[dict]) -> None:
         try:
