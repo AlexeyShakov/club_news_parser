@@ -15,6 +15,7 @@ RUN pip install -r /parser_app/requirements.txt
 
 COPY . .
 
+RUN pip install -e ./services/grpc_translations/
 
 
 
