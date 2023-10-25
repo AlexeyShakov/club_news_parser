@@ -21,7 +21,7 @@ services:
       - parser_postgres_data:/var/lib/postgresql/data/
     restart: always
 
-  app:
+  parser_app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -33,6 +33,37 @@ services:
       - rabbitmq
     command: bash -c "alembic upgrade head && python main.py"
     restart: on-failure
+
+  translation_app:
+    build:
+      context: ./services/
+      dockerfile: ./translatiion_service/Dockerfile
+    container_name: translation_app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - rabbitmq
+      - parser_app
+    command: bash -c "gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:${TRANSLATION_PORT} --reload"
+    expose:
+      - "${TRANSLATION_PORT}"
+
+  telegram_app:
+    build:
+      context: ./services/
+      dockerfile: ./telegram_service/Dockerfile
+    container_name: telegram_app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - rabbitmq
+      - parser_app
+      - translation_app
+    command: bash -c "gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:${TELEGRAM_PORT} --reload"
+    expose:
+      - "${TELEGRAM_PORT}"
 
 volumes:
   parser_postgres_data:

@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from src.config import logger, console_logger, GETTING_NEWS_INTERVAL, OVER_GRPC, OVER_HTTP
 from threading import Thread
 from src.utils.delete_old_news import delete_outdated_news
+from src.db.error_filler import fill_errors
 
 from src.utils.resend_error_news import handle_resending
 
@@ -46,6 +47,7 @@ async def form_tasks() -> None:
 
 
 async def start_app():
+    await fill_errors()
     console_logger.info("Приложение запустилось")
     while True:
         await form_tasks()

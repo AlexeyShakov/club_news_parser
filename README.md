@@ -73,9 +73,11 @@ POSTGRES_USER=<юзернэйм пользователя БД>
 
 POSTGRES_PASSWORD=<пароль от БД>
 
-TRANSLATION_URL=<URL сервиса переводов>
+TRANSLATION_PORT=<Порт сервиса переводов в случае HTTP общения между сервисами>
+TRANSLATION_CONTAINER=translation_app
 
-TELEGRAM_URL=<URL сервиса отправки сообщений в телеграмм>
+TELEGRAM_PORT=<Порт сервиса телеграма в случае HTTP общения между сервисами>
+TELEGRAM_CONTAINER=telegram_app
 
 OVER_HTTP= 0 или 1 - указатель того, что используется REST API для общения между сервисами
 
