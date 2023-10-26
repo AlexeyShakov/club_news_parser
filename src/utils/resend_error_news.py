@@ -6,7 +6,7 @@ from grpc_service import telegram_pb2_grpc, telegram_pb2, translation_pb2, trans
 from sqlalchemy import select, or_
 
 from src.config import TELEGRAM_URL, console_logger, logger, TRANSLATION_URL, RESENDING_INTERVAL, OVER_GRPC, OVER_HTTP, \
-    OVER_QUEUE, GRPC_TRANSLATION_PORT, GRPC_TELEGRAM_PORT
+    OVER_QUEUE, GRPC_TRANSLATION_PORT, GRPC_TELEGRAM_PORT, TRANSLATION_CONTAINER, TELEGRAM_CONTAINER
 from src.db.db_connection import sync_session_maker
 from src.db.models import Post, Error
 from src.utils.enums import StepNameChoice
@@ -67,7 +67,7 @@ class NewsResender:
         raise SenderNotFound()
 
     def send_over_grpc_to_telegram(self, news: list[dict]) -> None:
-        channel = grpc.aio.insecure_channel(f"localhost:{GRPC_TELEGRAM_PORT}")
+        channel = grpc.aio.insecure_channel(f"{TELEGRAM_CONTAINER}:{GRPC_TELEGRAM_PORT}")
         stub = telegram_pb2_grpc.NewsTelegramStub(channel)
         data_to_send = [
             telegram_pb2.OneTranslatedNews(id={"id": post["id"]}, link={"link": post["link"]},
@@ -96,7 +96,7 @@ class NewsResender:
                                     title={"title": post["title"]},
                                     short_description={"short_description": post["short_description"]}) for post in
             news]
-        channel = grpc.insecure_channel(f"localhost:{GRPC_TRANSLATION_PORT}")
+        channel = grpc.insecure_channel(f"{TRANSLATION_CONTAINER}:{GRPC_TRANSLATION_PORT}")
         stub = translation_pb2_grpc.NewsTranslatorStub(channel)
         try:
             stub.GetNews(translation_pb2.News(

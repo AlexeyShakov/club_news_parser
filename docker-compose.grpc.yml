@@ -45,9 +45,9 @@ services:
       - db
       - rabbitmq
       - parser_app
-    command: bash -c "gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:${TRANSLATION_PORT} --reload"
+    command: bash -c "python grpc_main.py"
     expose:
-      - "${TRANSLATION_PORT}"
+      - "${GRPC_TRANSLATION_PORT}"
 
   telegram_app:
     build:
@@ -61,9 +61,9 @@ services:
       - rabbitmq
       - parser_app
       - translation_app
-    command: bash -c "gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:${TELEGRAM_PORT} --reload"
+    command: bash -c "python grpc_main.py"
     expose:
-      - "${TELEGRAM_PORT}"
+      - "${GRPC_TELEGRAM_PORT}"
 
 volumes:
   parser_postgres_data:

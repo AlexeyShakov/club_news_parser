@@ -4,7 +4,7 @@ from aio_pika import DeliveryMode, Message, connect
 import aiohttp
 
 from src.config import OVER_HTTP, OVER_QUEUE, OVER_GRPC, TRANSLATION_URL, console_logger, GRPC_TRANSLATION_PORT, logger, \
-    TRANSLATION_QUEUE, RABBITMQ_USER, RABBITMQ_PASS
+    TRANSLATION_QUEUE, RABBITMQ_USER, RABBITMQ_PASS, TRANSLATION_CONTAINER, TELEGRAM_CONTAINER
 from src.custom_exceptions import SenderNotFound
 from src.db.models import Post
 from src.utils.actions import update_db_elements_with_error
@@ -46,7 +46,7 @@ async def send_over_grpc(news: list[Post]) -> None:
     data_to_send = [
         translation_pb2.OneNews(id={"id": post.id}, link={"link": post.link}, title={"title": post.title},
                                 short_description={"short_description": post.short_description}) for post in news]
-    channel = grpc.aio.insecure_channel(f"localhost:{GRPC_TRANSLATION_PORT}")
+    channel = grpc.aio.insecure_channel(f"{TRANSLATION_CONTAINER}:{GRPC_TRANSLATION_PORT}")
     stub = translation_pb2_grpc.NewsTranslatorStub(channel)
     try:
         await stub.GetNews(translation_pb2.News(
