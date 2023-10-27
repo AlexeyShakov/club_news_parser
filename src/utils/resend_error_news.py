@@ -67,7 +67,7 @@ class NewsResender:
         raise SenderNotFound()
 
     def send_over_grpc_to_telegram(self, news: list[dict]) -> None:
-        channel = grpc.aio.insecure_channel(f"{TELEGRAM_CONTAINER}:{GRPC_TELEGRAM_PORT}")
+        channel = grpc.insecure_channel(f"{TELEGRAM_CONTAINER}:{GRPC_TELEGRAM_PORT}")
         stub = telegram_pb2_grpc.NewsTelegramStub(channel)
         data_to_send = [
             telegram_pb2.OneTranslatedNews(id={"id": post["id"]}, link={"link": post["link"]},

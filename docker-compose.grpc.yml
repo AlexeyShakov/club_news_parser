@@ -31,6 +31,8 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - translation_app
+      - telegram_app
     command: bash -c "alembic upgrade head && python main.py"
     restart: on-failure
 
@@ -44,7 +46,7 @@ services:
     depends_on:
       - db
       - rabbitmq
-      - parser_app
+      - telegram_app
     command: bash -c "python grpc_main.py"
     expose:
       - "${GRPC_TRANSLATION_PORT}"
@@ -59,8 +61,6 @@ services:
     depends_on:
       - db
       - rabbitmq
-      - parser_app
-      - translation_app
     command: bash -c "python grpc_main.py"
     expose:
       - "${GRPC_TELEGRAM_PORT}"
