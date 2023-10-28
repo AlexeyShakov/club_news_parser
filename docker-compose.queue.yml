@@ -1,5 +1,23 @@
-version: "3.2"
+version: "2.1"
 services:
+  rabbitmq:
+    build:
+      context: .
+      dockerfile: rabbit.Dockerfile
+    container_name: 'rabbitmq'
+    ports:
+        - "5672:5672"
+        - "15672:15672"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASS}
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq/mnesia/
+
   db:
     image: postgres:15
     container_name: db
@@ -13,7 +31,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - parser_postgres_data:/var/lib/postgresql/data/
-    restart: always
+    restart: on-failure
 
   parser_app:
     build:
@@ -24,7 +42,10 @@ services:
       - .env
     depends_on:
       - db
-    command: bash -c "alembic upgrade head && python main.py"
+      - rabbitmq
+      - translation_app
+      - telegram_app
+    command: ./start.sh
     restart: on-failure
 
   translation_app:
@@ -36,10 +57,10 @@ services:
       - .env
     depends_on:
       - db
-      - parser_app
-    command: bash -c "gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:${TRANSLATION_PORT} --reload"
-    expose:
-      - "${TRANSLATION_PORT}"
+      - rabbitmq
+      - telegram_app
+    command: bash -c "python rabbitmq_main.py"
+    restart: on-failure
 
   telegram_app:
     build:
@@ -50,11 +71,11 @@ services:
       - .env
     depends_on:
       - db
-      - parser_app
-      - translation_app
-    command: bash -c "gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:${TELEGRAM_PORT} --reload"
-    expose:
-      - "${TELEGRAM_PORT}"
+      - rabbitmq
+    command: bash -c "python rabbitmq_main.py"
+    restart: on-failure
+
 
 volumes:
   parser_postgres_data:
+  rabbit_data:

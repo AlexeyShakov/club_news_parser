@@ -8,7 +8,7 @@ COPY requirements.txt /parser_app
 
 ENV PYTHONUNBUFFERED 1
 
-RUN apt update && apt install -y gettext
+RUN apt update && apt install -y gettext && apt install netcat-traditional
 RUN pip install --upgrade pip
 
 RUN pip install -r /parser_app/requirements.txt
